@@ -5,12 +5,9 @@ packages:
   - redis
 
 templates:
-  bin/redis_ctl: bin/redis_ctl
-  bin/monit_debugger: bin/monit_debugger
-  data/properties.sh.erb: data/properties.sh
-  helpers/ctl_setup.sh: helpers/ctl_setup.sh
-  helpers/ctl_utils.sh: helpers/ctl_utils.sh
-  config/redis.conf.erb: config/redis.conf
+  bpm-pre-start.erb: bin/bpm-pre-start
+  bpm.yml.erb: config/bpm.yml
+  redis.conf.erb: config/redis.conf
 
 provides:
 - name: redis

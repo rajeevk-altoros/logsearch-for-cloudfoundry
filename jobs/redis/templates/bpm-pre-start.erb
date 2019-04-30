@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+set -e
+
+MEMORY_LIMIT=$(($(grep MemTotal /proc/meminfo | awk '{print $2}') * <%= p('redis.maxmemory') %>/100 * 1024))
+sed -i "s/^maxmemory REPLACE_ME/maxmemory $MEMORY_LIMIT/" /var/vcap/jobs/redis/config/redis.conf
