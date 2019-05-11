@@ -421,7 +421,7 @@ module.exports = function (kibana) {
             request.setUrl('/' + match[1] + '/_filtered_search');
           }
         }
-        return reply.continue();
+        return reply.continue;
 
       }); // end server.ext('onRequest')
 
