@@ -274,18 +274,18 @@ module.exports = function (kibana) {
            */
           method: 'GET',
           path: '/login',
-          config: {
-            auth: 'uaa-oauth', // /login is guarded by `uaa-oauth` strategy
-            handler: function (request, reply) {
-              if (request.auth.isAuthenticated) {
-                /* Sets uaa-auth cookie with value of user auth session_id.
-                 (see request.auth.session definition in hapi-auth-cookie/lib/index.js) */
-                var session_id = '' + request.auth.credentials.session_id;
-                request.auth.session.set({ session_id: session_id });
-                return reply.redirect('/');
-              }
-              reply('Not logged in...').code(401);
+          async handler(request, h) {
+            if (request.auth.isAuthenticated) {
+              /* Sets uaa-auth cookie with value of user auth session_id.
+               (see request.auth.session definition in hapi-auth-cookie/lib/index.js) */
+              var session_id = '' + request.auth.credentials.session_id;
+              request.auth.session.set({ session_id: session_id });
+              return reply.redirect('/');
             }
+            reply('Not logged in...').code(401);
+          },
+          options: {
+            auth: 'uaa-oauth', // /login is guarded by `uaa-oauth` strategy
           }
         }, {
           method: 'GET',
