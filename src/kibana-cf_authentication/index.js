@@ -1,6 +1,7 @@
 var Bell = require('bell'); // OAuth2.0 authentication library (see https://github.com/hapijs/bell for lib details)
 var AuthCookie = require('hapi-auth-cookie'); // auth strategies mechanism
 var Promise = require('bluebird');
+var h = require("hapi");
 var request = Promise.promisify(require('request'));
 var uuid = require('uuid');
 var randomstring = require("randomstring");
@@ -276,27 +277,27 @@ module.exports = function (kibana) {
           path: '/login',
           config: {
             auth: 'uaa-oauth', // /login is guarded by `uaa-oauth` strategy
-            handler: function (request, reply) {
+            handler: function (request, h) {
               if (request.auth.isAuthenticated) {
                 /* Sets uaa-auth cookie with value of user auth session_id.
                  (see request.auth.session definition in hapi-auth-cookie/lib/index.js) */
                 var session_id = '' + request.auth.credentials.session_id;
                 request.auth.session.set({ session_id: session_id });
-                return reply.redirect('/');
+                return h.redirect('/');
               }
-              reply('Not logged in...').code(401);
+              h('Not logged in...').code(401);
             }
           }
         }, {
           method: 'GET',
           path: '/account',
           config: {
-            handler: function (request, reply) {
+            handler: function (request, h) {
               cache.get(request.auth.credentials.session_id, function(err, cached) {
                 if (err) {
                   server.log(['error', 'authentication', 'session:get:account'], JSON.stringify(err));
                 }
-                reply(cached.account.profile);
+                h(cached.account.profile);
               });
             }
           }
@@ -304,7 +305,7 @@ module.exports = function (kibana) {
           method: 'GET',
           path: '/logout',
           config: {
-            handler: function (request, reply) {
+            handler: function (request, h) {
 
               // remove user session entry from the cache
               cache.drop(request.auth.credentials.session_id, function (err) {
@@ -319,7 +320,7 @@ module.exports = function (kibana) {
               request.auth.session.clear();
 
               /* Redirect to UAA logout. */
-              reply.redirect(config.get("authentication.logout_uri"));
+              h.redirect(config.get("authentication.logout_uri"));
             }
           }
         }, {
@@ -329,7 +330,7 @@ module.exports = function (kibana) {
             payload: {
               parse: false
             },
-            handler: function(request, reply) {
+            handler: function(request, h) {
               var options = {
                 method: 'POST',
                 url: '/elasticsearch/_msearch',
@@ -360,7 +361,7 @@ module.exports = function (kibana) {
                 delete options.headers['accept-encoding'];
                 options.headers['content-length'] = options.payload.length;
                 server.inject(options, (resp) => {
-                  reply(resp.result || resp.payload)
+                  h(resp.result || resp.payload)
                     .code(resp.statusCode)
                     .type(resp.headers['content-type'])
                     .passThrough(true);
@@ -375,7 +376,7 @@ module.exports = function (kibana) {
             payload: {
               parse: false
             },
-            handler: function(request, reply) {
+            handler: function(request, h) {
               var options = {
                 method: 'POST',
                 url: '/elasticsearch/' + request.params.index + '/_search',
@@ -398,7 +399,7 @@ module.exports = function (kibana) {
                 delete options.headers['accept-encoding'];
                 options.headers['content-length'] = options.payload.length;
                 server.inject(options, (resp) => {
-                  reply(resp.result || resp.payload)
+                  h(resp.result || resp.payload)
                     .code(resp.statusCode)
                     .type(resp.headers['content-type'])
                     .passThrough(true);
@@ -412,7 +413,7 @@ module.exports = function (kibana) {
       }); // end: server.register
 
       // Redirect _msearch and _search through our own route so we can modify the payload
-      server.ext('onRequest', function (request, reply) {
+      server.ext('onRequest', function (request, h) {
         if (/elasticsearch\/_msearch/.test(request.path) && !request.auth.artifacts) {
           request.setUrl('/_filtered_msearch');
         } else {
@@ -421,7 +422,7 @@ module.exports = function (kibana) {
             request.setUrl('/' + match[1] + '/_filtered_search');
           }
         }
-        return reply.continue();
+        return h.continue();
 
       }); // end server.ext('onRequest')
 

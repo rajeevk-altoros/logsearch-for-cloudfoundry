@@ -12,6 +12,7 @@
     "catbox": "^6.0.0",
     "catbox-redis": "^1.0.7",
     "hapi-auth-cookie": "3.1.0",
+    "hapi": "16.7.0",
     "randomstring": "^1.1.5",
     "request": "^2.40.0",
     "uuid": "^2.0.1"
